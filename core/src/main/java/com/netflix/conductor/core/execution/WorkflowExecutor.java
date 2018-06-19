@@ -566,7 +566,11 @@ public class WorkflowExecutor {
             if (!tasksToBeRequeued.isEmpty()) {
                 addTaskToQueue(tasksToBeRequeued);
             }
-            workflow.getTasks().addAll(tasksToBeScheduled);
+
+            if(!workflow.getTasks().contains(tasksToBeScheduled))
+            {
+                workflow.getTasks().addAll(tasksToBeScheduled);
+            }
 
             for (Task task : tasksToBeScheduled) {
                 if (isSystemTask.and(isNonTerminalTask).test(task)) {
