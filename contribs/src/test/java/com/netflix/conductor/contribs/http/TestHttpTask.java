@@ -14,32 +14,21 @@
  * limitations under the License.
  */
 /**
- *
+ * 
  */
 package com.netflix.conductor.contribs.http;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.stream.Collectors;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.conductor.common.metadata.tasks.Task;
+import com.netflix.conductor.common.metadata.tasks.Task.Status;
+import com.netflix.conductor.common.metadata.workflow.WorkflowDef;
+import com.netflix.conductor.common.metadata.workflow.WorkflowTask;
+import com.netflix.conductor.common.metadata.workflow.WorkflowTask.Type;
+import com.netflix.conductor.common.run.Workflow;
+import com.netflix.conductor.contribs.http.HttpTask.Input;
+import com.netflix.conductor.core.config.Configuration;
+import com.netflix.conductor.core.execution.DeciderService;
 import com.netflix.conductor.core.execution.ParametersUtils;
 import com.netflix.conductor.core.execution.WorkflowExecutor;
 import com.netflix.conductor.core.execution.mapper.DecisionTaskMapper;
@@ -348,25 +337,6 @@ public class TestHttpTask {
 		
 		assertEquals("Task output: " + task.getOutputData(), Status.COMPLETED, task.getStatus());
 	}
-
-	@Test
-	public void testTextGETUnsuccessFulStatusCode() throws Exception {
-		Task task = new Task();
-		Input input = new Input();
-		input.setUri("http://localhost:7009/404");
-		input.setMethod("GET");
-		List<Integer> allowedNonSuccessFulStatusCodes = new ArrayList<>();
-		allowedNonSuccessFulStatusCodes.add(404);
-		input.setAllowedNonSuccessfulStatusCodes(allowedNonSuccessFulStatusCodes);
-		task.getInputData().put(HttpTask.REQUEST_PARAMETER_NAME, input);
-
-		httpTask.start(workflow, task, executor);
-		Map<String, Object> hr = (Map<String, Object>) task.getOutputData().get("response");
-		Object response = hr.get("body");
-		assertEquals(Task.Status.COMPLETED, task.getStatus());
-		assertEquals(TEXT_RESPONSE, response);
-		assertEquals(404, hr.get("statusCode"));
-	}
 	
 	private static class EchoHandler extends AbstractHandler {
 
@@ -425,12 +395,6 @@ public class TestHttpTask {
 				response.addHeader("Content-Type", "application/json");
 				PrintWriter writer = response.getWriter();
 				writer.print(objectMapper.writeValueAsString(params));
-				writer.flush();
-				writer.close();
-			}  else if (request.getMethod().equals("GET") && request.getRequestURI().equals("/404")) {
-				response.setStatus(404);
-				PrintWriter writer = response.getWriter();
-				writer.print(TEXT_RESPONSE);
 				writer.flush();
 				writer.close();
 			}
