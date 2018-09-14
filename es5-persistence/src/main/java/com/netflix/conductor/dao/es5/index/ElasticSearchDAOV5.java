@@ -54,6 +54,7 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.IndexNotFoundException;
 import org.elasticsearch.index.get.GetField;
@@ -63,7 +64,10 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.fetch.subphase.FetchSourceContext;
+import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -101,7 +105,7 @@ public class ElasticSearchDAOV5 implements IndexDAO {
 	
 	private static final String TASK_DOC_TYPE = "task";
 	
-	private static final String LOG_DOC_TYPE = "task";
+	private static final String LOG_DOC_TYPE = "task_log";
 	
 	private static final String EVENT_DOC_TYPE = "event";
 	
@@ -180,17 +184,17 @@ public class ElasticSearchDAOV5 implements IndexDAO {
 	 */
 	private void initIndex() throws Exception {
 
-		//0. Add the index template
-		GetIndexTemplatesResponse result = elasticSearchClient.admin().indices().prepareGetTemplates("wfe_template").execute().actionGet();
+		//0. Add the tasklog template
+		GetIndexTemplatesResponse result = elasticSearchClient.admin().indices().prepareGetTemplates("tasklog_template").execute().actionGet();
 		if(result.getIndexTemplates().isEmpty()) {
-			logger.info("Creating the index template 'wfe_template'");
-			InputStream stream = ElasticSearchDAOV5.class.getResourceAsStream("/template.json");
+			logger.info("Creating the index template 'tasklog_template'");
+			InputStream stream = ElasticSearchDAOV5.class.getResourceAsStream("/template_tasklog.json");
 			byte[] templateSource = IOUtils.toByteArray(stream);
 			
 			try {
-				elasticSearchClient.admin().indices().preparePutTemplate("wfe_template").setSource(templateSource, XContentType.JSON).execute().actionGet();
+				elasticSearchClient.admin().indices().preparePutTemplate("tasklog_template").setSource(templateSource, XContentType.JSON).execute().actionGet();
 			}catch(Exception e) {
-				logger.error("Failed to init index template", e);
+				logger.error("Failed to init tasklog_template", e);
 			}
 		}
 	
@@ -203,17 +207,31 @@ public class ElasticSearchDAOV5 implements IndexDAO {
 			}catch(ResourceAlreadyExistsException done) {}
 		}
 				
-		//2. Mapping for the workflow document type
-		GetMappingsResponse response = elasticSearchClient.admin().indices().prepareGetMappings(indexName).addTypes(WORKFLOW_DOC_TYPE).execute().actionGet();
-		if(response.mappings().isEmpty()) {
+		//2. Add Mappings for the workflow document type
+		GetMappingsResponse getMappingsResponse = elasticSearchClient.admin().indices().prepareGetMappings(indexName).addTypes(WORKFLOW_DOC_TYPE).execute().actionGet();
+		if(getMappingsResponse.mappings().isEmpty()) {
 			logger.info("Adding the workflow type mappings");
-			InputStream stream = ElasticSearchDAOV5.class.getResourceAsStream("/wfe_type.json");
+			InputStream stream = ElasticSearchDAOV5.class.getResourceAsStream("/mappings_docType_workflow.json");
 			byte[] bytes = IOUtils.toByteArray(stream);
 			String source = new String(bytes);
 			try {
 				elasticSearchClient.admin().indices().preparePutMapping(indexName).setType(WORKFLOW_DOC_TYPE).setSource(source).execute().actionGet();
 			}catch(Exception e) {
 				logger.error("Failed to init index mappings", e);
+			}
+		}
+
+		//3. Add Mappings for task document type
+		getMappingsResponse = elasticSearchClient.admin().indices().prepareGetMappings(indexName).addTypes(TASK_DOC_TYPE).execute().actionGet();
+		if (getMappingsResponse.mappings().isEmpty()) {
+			logger.info("Adding the task type mappings");
+			InputStream stream = ElasticSearchDAOV5.class.getResourceAsStream("/mappings_docType_task.json");
+			byte[] bytes = IOUtils.toByteArray(stream);
+			String source = new String(bytes);
+			try {
+				elasticSearchClient.admin().indices().preparePutMapping(indexName).setType(TASK_DOC_TYPE).setSource(source).execute().actionGet();
+			} catch (Exception e) {
+				logger.error(e.getMessage(), e);
 			}
 		}
 	}
@@ -301,7 +319,7 @@ public class ElasticSearchDAOV5 implements IndexDAO {
 			QueryStringQueryBuilder stringQuery = QueryBuilders.queryStringQuery("*");
 			BoolQueryBuilder fq = QueryBuilders.boolQuery().must(stringQuery).must(filterQuery);
 
-			final SearchRequestBuilder srb = elasticSearchClient.prepareSearch(indexName).setQuery(fq).setTypes(TASK_DOC_TYPE);
+			final SearchRequestBuilder srb = elasticSearchClient.prepareSearch(logIndexPrefix + "*").setQuery(fq).setTypes(LOG_DOC_TYPE).addSort(SortBuilders.fieldSort("createdTime").order(SortOrder.ASC));
 			SearchResponse response = srb.execute().actionGet();
 			SearchHit[] hits = response.getHits().getHits();
 			List<TaskExecLog> logs = new ArrayList<>(hits.length);
@@ -409,7 +427,7 @@ public class ElasticSearchDAOV5 implements IndexDAO {
 	@Override
 	public void updateWorkflow(String workflowInstanceId, String[] keys, Object[] values) {
 		if (keys.length != values.length) {
-			throw new IllegalArgumentException("Number of keys and values should be same.");
+			throw new ApplicationException(Code.INVALID_INPUT, "Number of keys and values do not match");
 		}
 
 		UpdateRequest request = new UpdateRequest(indexName, WORKFLOW_DOC_TYPE, workflowInstanceId);
@@ -428,18 +446,18 @@ public class ElasticSearchDAOV5 implements IndexDAO {
 
 	@Override
 	public String get(String workflowInstanceId, String fieldToGet) {
-		Object value = null;
-		GetRequest request = new GetRequest(indexName, WORKFLOW_DOC_TYPE, workflowInstanceId).storedFields(fieldToGet);
+		GetRequest request = new GetRequest(indexName, WORKFLOW_DOC_TYPE, workflowInstanceId)
+				.fetchSourceContext(new FetchSourceContext(true, new String[]{fieldToGet}, Strings.EMPTY_ARRAY));
 		GetResponse response = elasticSearchClient.get(request).actionGet();
-		Map<String, GetField> fields = response.getFields();
-		if(fields == null) {
-			return null;
+
+		if (response.isExists()){
+			Map<String, Object> sourceAsMap = response.getSourceAsMap();
+			if (sourceAsMap.containsKey(fieldToGet)){
+				return sourceAsMap.get(fieldToGet).toString();
+			}
 		}
-		GetField field = fields.get(fieldToGet);		
-		if(field != null) value = field.getValue();
-		if(value != null) {
-			return value.toString();
-		}
+
+		logger.debug("Unable to find Workflow: {} in ElasticSearch index: {}.", workflowInstanceId, indexName);
 		return null;
 	}
 	
@@ -478,7 +496,7 @@ public class ElasticSearchDAOV5 implements IndexDAO {
 	@Override
 	public List<String> searchArchivableWorkflows(String indexName, long archiveTtlDays) {
 		QueryBuilder q = QueryBuilders.boolQuery()
-				.must(QueryBuilders.rangeQuery("endTime").lt(LocalDate.now().minusDays(archiveTtlDays)))
+				.must(QueryBuilders.rangeQuery("endTime").lt(LocalDate.now().minusDays(archiveTtlDays).toString()))
 				.should(QueryBuilders.termQuery("status", "COMPLETED"))
 				.should(QueryBuilders.termQuery("status", "FAILED"))
 				.mustNot(QueryBuilders.existsQuery("archived"))
@@ -487,6 +505,29 @@ public class ElasticSearchDAOV5 implements IndexDAO {
 				.setTypes("workflow")
 				.setQuery(q)
 				.setSize(1000);
+		SearchResponse response = s.execute().actionGet();
+		SearchHits hits = response.getHits();
+		List<String> ids = new LinkedList<>();
+		for (SearchHit hit : hits.getHits()) {
+			ids.add(hit.getId());
+		}
+		return ids;
+	}
+
+	public List<String> searchRecentRunningWorkflows(int lastModifiedHoursAgoFrom, int lastModifiedHoursAgoTo) {
+		DateTime dateTime = new DateTime();
+		QueryBuilder q = QueryBuilders.boolQuery()
+				.must(QueryBuilders.rangeQuery("updateTime")
+						.gt(dateTime.minusHours(lastModifiedHoursAgoFrom)))
+				.must(QueryBuilders.rangeQuery("updateTime")
+						.lt(dateTime.minusHours(lastModifiedHoursAgoTo)))
+				.must(QueryBuilders.termQuery("status", "RUNNING"));
+
+		SearchRequestBuilder s = elasticSearchClient.prepareSearch(indexName)
+				.setTypes("workflow")
+				.setQuery(q)
+				.setSize(5000)
+                .addSort("updateTime",SortOrder.ASC);
 
 		SearchResponse response = s.execute().actionGet();
 		SearchHits hits = response.getHits();
@@ -496,4 +537,6 @@ public class ElasticSearchDAOV5 implements IndexDAO {
 		}
 		return ids;
 	}
+
+
 }

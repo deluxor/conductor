@@ -1,5 +1,11 @@
 {
     "compile": {
+        "com.amazonaws:aws-java-sdk-s3": {
+            "firstLevelTransitive": [
+                "com.netflix.conductor:conductor-core"
+            ],
+            "locked": "1.11.86"
+        },
         "com.fasterxml.jackson.core:jackson-core": {
             "firstLevelTransitive": [
                 "com.netflix.conductor:conductor-core"
@@ -69,6 +75,12 @@
                 "com.netflix.conductor:conductor-core"
             ],
             "locked": "0.68.0"
+        },
+        "com.spotify:completable-futures": {
+            "firstLevelTransitive": [
+                "com.netflix.conductor:conductor-core"
+            ],
+            "locked": "0.3.1"
         },
         "io.reactivex:rxjava": {
             "firstLevelTransitive": [
@@ -94,6 +106,12 @@
         }
     },
     "compileClasspath": {
+        "com.amazonaws:aws-java-sdk-s3": {
+            "firstLevelTransitive": [
+                "com.netflix.conductor:conductor-core"
+            ],
+            "locked": "1.11.86"
+        },
         "com.fasterxml.jackson.core:jackson-core": {
             "firstLevelTransitive": [
                 "com.netflix.conductor:conductor-core"
@@ -163,6 +181,12 @@
                 "com.netflix.conductor:conductor-core"
             ],
             "locked": "0.68.0"
+        },
+        "com.spotify:completable-futures": {
+            "firstLevelTransitive": [
+                "com.netflix.conductor:conductor-core"
+            ],
+            "locked": "0.3.1"
         },
         "io.reactivex:rxjava": {
             "firstLevelTransitive": [
@@ -188,6 +212,12 @@
         }
     },
     "default": {
+        "com.amazonaws:aws-java-sdk-s3": {
+            "firstLevelTransitive": [
+                "com.netflix.conductor:conductor-core"
+            ],
+            "locked": "1.11.86"
+        },
         "com.fasterxml.jackson.core:jackson-core": {
             "firstLevelTransitive": [
                 "com.netflix.conductor:conductor-core"
@@ -257,6 +287,12 @@
                 "com.netflix.conductor:conductor-core"
             ],
             "locked": "0.68.0"
+        },
+        "com.spotify:completable-futures": {
+            "firstLevelTransitive": [
+                "com.netflix.conductor:conductor-core"
+            ],
+            "locked": "0.3.1"
         },
         "io.reactivex:rxjava": {
             "firstLevelTransitive": [
@@ -282,6 +318,12 @@
         }
     },
     "runtime": {
+        "com.amazonaws:aws-java-sdk-s3": {
+            "firstLevelTransitive": [
+                "com.netflix.conductor:conductor-core"
+            ],
+            "locked": "1.11.86"
+        },
         "com.fasterxml.jackson.core:jackson-core": {
             "firstLevelTransitive": [
                 "com.netflix.conductor:conductor-core"
@@ -351,6 +393,12 @@
                 "com.netflix.conductor:conductor-core"
             ],
             "locked": "0.68.0"
+        },
+        "com.spotify:completable-futures": {
+            "firstLevelTransitive": [
+                "com.netflix.conductor:conductor-core"
+            ],
+            "locked": "0.3.1"
         },
         "io.reactivex:rxjava": {
             "firstLevelTransitive": [
@@ -376,6 +424,12 @@
         }
     },
     "runtimeClasspath": {
+        "com.amazonaws:aws-java-sdk-s3": {
+            "firstLevelTransitive": [
+                "com.netflix.conductor:conductor-core"
+            ],
+            "locked": "1.11.86"
+        },
         "com.fasterxml.jackson.core:jackson-core": {
             "firstLevelTransitive": [
                 "com.netflix.conductor:conductor-core"
@@ -445,6 +499,12 @@
                 "com.netflix.conductor:conductor-core"
             ],
             "locked": "0.68.0"
+        },
+        "com.spotify:completable-futures": {
+            "firstLevelTransitive": [
+                "com.netflix.conductor:conductor-core"
+            ],
+            "locked": "0.3.1"
         },
         "io.reactivex:rxjava": {
             "firstLevelTransitive": [
@@ -470,6 +530,12 @@
         }
     },
     "testCompile": {
+        "com.amazonaws:aws-java-sdk-s3": {
+            "firstLevelTransitive": [
+                "com.netflix.conductor:conductor-core"
+            ],
+            "locked": "1.11.86"
+        },
         "com.fasterxml.jackson.core:jackson-core": {
             "firstLevelTransitive": [
                 "com.netflix.conductor:conductor-core"
@@ -539,6 +605,12 @@
                 "com.netflix.conductor:conductor-core"
             ],
             "locked": "0.68.0"
+        },
+        "com.spotify:completable-futures": {
+            "firstLevelTransitive": [
+                "com.netflix.conductor:conductor-core"
+            ],
+            "locked": "0.3.1"
         },
         "io.reactivex:rxjava": {
             "firstLevelTransitive": [
@@ -576,6 +648,12 @@
         }
     },
     "testCompileClasspath": {
+        "com.amazonaws:aws-java-sdk-s3": {
+            "firstLevelTransitive": [
+                "com.netflix.conductor:conductor-core"
+            ],
+            "locked": "1.11.86"
+        },
         "com.fasterxml.jackson.core:jackson-core": {
             "firstLevelTransitive": [
                 "com.netflix.conductor:conductor-core"
@@ -645,6 +723,12 @@
                 "com.netflix.conductor:conductor-core"
             ],
             "locked": "0.68.0"
+        },
+        "com.spotify:completable-futures": {
+            "firstLevelTransitive": [
+                "com.netflix.conductor:conductor-core"
+            ],
+            "locked": "0.3.1"
         },
         "io.reactivex:rxjava": {
             "firstLevelTransitive": [
@@ -682,6 +766,12 @@
         }
     },
     "testRuntime": {
+        "com.amazonaws:aws-java-sdk-s3": {
+            "firstLevelTransitive": [
+                "com.netflix.conductor:conductor-core"
+            ],
+            "locked": "1.11.86"
+        },
         "com.fasterxml.jackson.core:jackson-core": {
             "firstLevelTransitive": [
                 "com.netflix.conductor:conductor-core"
@@ -751,6 +841,12 @@
                 "com.netflix.conductor:conductor-core"
             ],
             "locked": "0.68.0"
+        },
+        "com.spotify:completable-futures": {
+            "firstLevelTransitive": [
+                "com.netflix.conductor:conductor-core"
+            ],
+            "locked": "0.3.1"
         },
         "io.reactivex:rxjava": {
             "firstLevelTransitive": [
@@ -788,6 +884,12 @@
         }
     },
     "testRuntimeClasspath": {
+        "com.amazonaws:aws-java-sdk-s3": {
+            "firstLevelTransitive": [
+                "com.netflix.conductor:conductor-core"
+            ],
+            "locked": "1.11.86"
+        },
         "com.fasterxml.jackson.core:jackson-core": {
             "firstLevelTransitive": [
                 "com.netflix.conductor:conductor-core"
@@ -857,6 +959,12 @@
                 "com.netflix.conductor:conductor-core"
             ],
             "locked": "0.68.0"
+        },
+        "com.spotify:completable-futures": {
+            "firstLevelTransitive": [
+                "com.netflix.conductor:conductor-core"
+            ],
+            "locked": "0.3.1"
         },
         "io.reactivex:rxjava": {
             "firstLevelTransitive": [

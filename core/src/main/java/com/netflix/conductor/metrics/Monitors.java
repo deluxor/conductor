@@ -155,6 +155,10 @@ public class Monitors {
 		return sw;
 	}
 
+	public static void recordGauge(String name, long count, String... tags) {
+		gauge(classQualifier, name, count, tags);
+	}
+
 	public static void recordQueueWaitTime(String taskType, long queueWaitTime) {
 		getTimer(classQualifier, "task_queue_wait", "taskType", taskType).record(queueWaitTime, TimeUnit.MILLISECONDS);
 	}
@@ -165,6 +169,10 @@ public class Monitors {
 
 	public static void recordTaskPoll(String taskType) {
 		counter(classQualifier, "task_poll", "taskType", taskType);
+	}
+
+	public static void recordTaskPollCount(String taskType, String domain, int count) {
+		getCounter(classQualifier, "task_poll_count", "taskType", taskType, "domain", domain).increment(count);
 	}
 
 	public static void recordQueueDepth(String taskType, long size, String ownerApp) {
@@ -201,7 +209,7 @@ public class Monitors {
 	}
 
 	public static void recordUpdateConflict(String taskType, String workflowType, Status status) {
-		counter(classQualifier, "task_update_conflict", "workflowName", workflowType, "taskType", taskType, "workflowStatus", status.name());
+		counter(classQualifier, "task_update_conflict", "workflowName", workflowType, "taskType", taskType, "taskStatus", status.name());
 	}
 
 	public static void recordWorkflowCompletion(String workflowType, long duration, String ownerApp) {
@@ -210,6 +218,10 @@ public class Monitors {
 
 	public static void recordTaskRateLimited(String taskDefName, int limit) {
 		gauge(classQualifier, "task_rate_limited", limit, "taskType", taskDefName);
+	}
+
+	public static void recordTaskConcurrentExecutionLimited(String taskDefName, int limit) {
+		gauge(classQualifier, "task_concurrent_execution_limited", limit, "taskType", taskDefName);
 	}
 
 	public static void recordEventQueueMessagesProcessed(String queueType, String queueName, int count) {
@@ -234,5 +246,9 @@ public class Monitors {
 
 	public static void recordDaoPayloadSize(String dao, String action, String taskType, String workflowType, int size) {
 		gauge(classQualifier, "dao_payload_size", size, "dao", dao, "action", action, "taskType", taskType, "workflowType", workflowType);
+	}
+
+	public static void recordExternalPayloadStorageUsage(String name, String operation, String payloadType) {
+		counter(classQualifier, "external_payload_storage_usage", "name", name, "operation", operation, "payloadType", payloadType);
 	}
 }

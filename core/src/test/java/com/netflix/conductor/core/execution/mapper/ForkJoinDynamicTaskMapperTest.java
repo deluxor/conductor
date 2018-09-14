@@ -46,7 +46,7 @@ public class ForkJoinDynamicTaskMapperTest {
 
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         parametersUtils = Mockito.mock(ParametersUtils.class);
         objectMapper = Mockito.mock(ObjectMapper.class);
         deciderService = Mockito.mock(DeciderService.class);
@@ -56,7 +56,7 @@ public class ForkJoinDynamicTaskMapperTest {
     }
 
     @Test
-    public void getMappedTasksException() throws Exception {
+    public void getMappedTasksException() {
 
         WorkflowDef def = new WorkflowDef();
         def.setName("DYNAMIC_FORK_JOIN_WF");
@@ -118,7 +118,15 @@ public class ForkJoinDynamicTaskMapperTest {
 
         String taskId = IDGenerator.generate();
 
-        TaskMapperContext taskMapperContext = new TaskMapperContext(def, workflowInstance, dynamicForkJoinToSchedule, null,0, null, taskId, deciderService);
+        //TaskMapperContext taskMapperContext = new TaskMapperContext(def, workflowInstance, dynamicForkJoinToSchedule, null,0, null, taskId, deciderService);
+        TaskMapperContext taskMapperContext = TaskMapperContext.newBuilder()
+                .withWorkflowDefinition(def)
+                .withWorkflowInstance(workflowInstance)
+                .withTaskToSchedule(dynamicForkJoinToSchedule)
+                .withRetryCount(0)
+                .withTaskId(taskId)
+                .withDeciderService(deciderService)
+                .build();
         //then
         expectedException.expect(TerminateWorkflowException.class);
         forkJoinDynamicTaskMapper.getMappedTasks(taskMapperContext);
@@ -126,7 +134,7 @@ public class ForkJoinDynamicTaskMapperTest {
     }
 
     @Test
-    public void getMappedTasks() throws Exception {
+    public void getMappedTasks() {
 
         WorkflowDef def = new WorkflowDef();
         def.setName("DYNAMIC_FORK_JOIN_WF");
@@ -188,8 +196,15 @@ public class ForkJoinDynamicTaskMapperTest {
         when(deciderService.getTasksToBeScheduled(def, workflowInstance, wt3, 0 )).thenReturn(Arrays.asList(simpleTask2));
 
         String taskId = IDGenerator.generate();
+        TaskMapperContext taskMapperContext = TaskMapperContext.newBuilder()
+                .withWorkflowDefinition(def)
+                .withWorkflowInstance(workflowInstance)
+                .withTaskToSchedule(dynamicForkJoinToSchedule)
+                .withRetryCount(0)
+                .withTaskId(taskId)
+                .withDeciderService(deciderService)
+                .build();
 
-        TaskMapperContext taskMapperContext = new TaskMapperContext(def, workflowInstance, dynamicForkJoinToSchedule, null,0, null, taskId, deciderService);
         //then
         List<Task> mappedTasks = forkJoinDynamicTaskMapper.getMappedTasks(taskMapperContext);
 
@@ -204,7 +219,7 @@ public class ForkJoinDynamicTaskMapperTest {
 
 
     @Test
-    public void getDynamicForkJoinTasksAndInput() throws Exception {
+    public void getDynamicForkJoinTasksAndInput() {
         //Given
         WorkflowTask dynamicForkJoinToSchedule = new WorkflowTask();
         dynamicForkJoinToSchedule.setType(WorkflowTask.Type.FORK_JOIN_DYNAMIC.name());
@@ -242,7 +257,7 @@ public class ForkJoinDynamicTaskMapperTest {
     }
 
     @Test
-    public void getDynamicForkJoinTasksAndInputException() throws Exception {
+    public void getDynamicForkJoinTasksAndInputException() {
         //Given
         WorkflowTask dynamicForkJoinToSchedule = new WorkflowTask();
         dynamicForkJoinToSchedule.setType(WorkflowTask.Type.FORK_JOIN_DYNAMIC.name());
@@ -279,7 +294,7 @@ public class ForkJoinDynamicTaskMapperTest {
     }
 
     @Test
-    public void getDynamicForkTasksAndInput() throws Exception {
+    public void getDynamicForkTasksAndInput() {
         //Given
         WorkflowTask dynamicForkJoinToSchedule = new WorkflowTask();
         dynamicForkJoinToSchedule.setType(WorkflowTask.Type.FORK_JOIN_DYNAMIC.name());
@@ -321,7 +336,7 @@ public class ForkJoinDynamicTaskMapperTest {
     }
 
     @Test
-    public void getDynamicForkTasksAndInputException() throws Exception {
+    public void getDynamicForkTasksAndInputException() {
 
         //Given
         WorkflowTask dynamicForkJoinToSchedule = new WorkflowTask();
